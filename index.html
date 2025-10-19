@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ZOS</title>
+    <link rel="icon" type="image/svg+xml" href="/zos-icon.svg" />
     <style type="text/tailwindcss">
       :root {
         --cursor-default: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300ffff' stroke-width='1'%3E%3Cpath d='M12 4 L12 20 M4 12 L20 12'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%2300ffff'/%3E%3C/svg%3E") 12 12, auto;
@@ -186,30 +187,16 @@
       }
 
       .zos-logo {
-        font-family: 'Orbitron', sans-serif; /* A futuristic font */
-        @apply font-bold italic text-7xl sm:text-8xl lg:text-[10rem] text-cyan-400;
-        text-shadow:
-          0 0 5px #00ffff,
-          0 0 15px #00ffff,
-          0 0 30px #00ffff,
-          0 0 50px #0ff;
-        animation: glow 2s ease-in-out infinite alternate;
+        @apply w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80;
+        animation: glow 2.5s ease-in-out infinite alternate;
       }
 
       @keyframes glow {
         from {
-          text-shadow:
-            0 0 5px #00ffff,
-            0 0 10px #00ffff,
-            0 0 20px #00ffff,
-            0 0 30px #0ff;
+          filter: drop-shadow(0 0 10px #00ffff) drop-shadow(0 0 20px #00ffff);
         }
         to {
-          text-shadow:
-            0 0 10px #00ffff,
-            0 0 20px #00ffff,
-            0 0 40px #00ffff,
-            0 0 60px #0ff;
+          filter: drop-shadow(0 0 20px #00ffff) drop-shadow(0 0 40px #00ffff) drop-shadow(0 0 60px #0ff);
         }
       }
 

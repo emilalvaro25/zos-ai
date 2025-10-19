@@ -30,7 +30,7 @@ const SplashScreen: React.FC = () => (
   <div className="absolute inset-0 bg-black flex items-center justify-center z-50">
      <div className="circuit-bg"></div>
      <div className="circuit-lines"></div>
-    <h1 className="zos-logo">ZOS</h1>
+    <img src="/zos-icon.svg" alt="ZOS Logo" className="zos-logo" />
   </div>
 );
 
