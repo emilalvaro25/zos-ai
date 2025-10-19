@@ -12,12 +12,15 @@ import {APP_DEFINITIONS_CONFIG, INITIAL_MAX_HISTORY_LENGTH} from './constants';
 import {streamAppContent} from './services/geminiService';
 import {AppDefinition, InteractionData} from './types';
 
-const DesktopView: React.FC<{onAppOpen: (app: AppDefinition) => void}> = ({
-  onAppOpen,
-}) => (
-  <div className="flex flex-wrap content-start p-4">
+const DesktopView: React.FC<{
+  onAppOpen: (
+    app: AppDefinition,
+    event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
+  ) => void;
+}> = ({onAppOpen}) => (
+  <div className="flex flex-wrap content-start justify-start p-2 md:p-4">
     {APP_DEFINITIONS_CONFIG.map((app) => (
-      <Icon key={app.id} app={app} onInteract={() => onAppOpen(app)} />
+      <Icon key={app.id} app={app} onInteract={(event) => onAppOpen(app, event)} />
     ))}
   </div>
 );
@@ -53,6 +56,10 @@ const App: React.FC = () => {
     Record<string, string>
   >({});
   const [currentAppPath, setCurrentAppPath] = useState<string[]>([]); // For UI graph statefulness
+
+  // Animation state
+  const [animationState, setAnimationState] = useState<'idle' | 'opening' | 'closing'>('idle');
+  const [animationOrigin, setAnimationOrigin] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -161,7 +168,17 @@ const App: React.FC = () => {
     ],
   );
 
-  const handleAppOpen = (app: AppDefinition) => {
+  const handleAppOpen = (
+    app: AppDefinition,
+    event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
+  ) => {
+    const iconRect = event.currentTarget.getBoundingClientRect();
+    setAnimationOrigin({
+      top: iconRect.top + iconRect.height / 2,
+      left: iconRect.left + iconRect.width / 2,
+    });
+    setAnimationState('opening');
+
     const initialInteraction: InteractionData = {
       id: app.id,
       type: 'app_open',
@@ -193,35 +210,60 @@ const App: React.FC = () => {
   };
 
   const handleCloseAppView = () => {
-    setActiveApp(null);
-    setLlmContent('');
-    setError(null);
-    setInteractionHistory([]);
-    setCurrentAppPath([]);
+    if (!activeApp) return;
+
+    const iconElement = document.querySelector(`[data-app-id='${activeApp.id}']`);
+    if (iconElement) {
+      const iconRect = iconElement.getBoundingClientRect();
+      setAnimationOrigin({
+        top: iconRect.top + iconRect.height / 2,
+        left: iconRect.left + iconRect.width / 2,
+      });
+    } else {
+      // Fallback: animate to bottom center of screen if icon isn't visible
+      setAnimationOrigin({ top: window.innerHeight, left: window.innerWidth / 2 });
+    }
+
+    setAnimationState('closing');
+
+    // Wait for animation to finish before cleaning up state
+    setTimeout(() => {
+      setActiveApp(null);
+      setLlmContent('');
+      setError(null);
+      setInteractionHistory([]);
+      setCurrentAppPath([]);
+      setAnimationState('idle');
+    }, 500); // Must match animation duration in Window.tsx
   };
 
   const handleToggleParametersPanel = () => {
     setIsParametersOpen((prevIsOpen) => {
-      const nowOpeningParameters = !prevIsOpen;
-      if (nowOpeningParameters) {
-        // Store the currently active app (if any) so it can be restored,
-        // or null if no app is active (desktop view).
-        setPreviousActiveApp(activeApp);
-        setActiveApp(null); // Clear active app to show parameters panel
-        setLlmContent('');
-        setError(null);
-        // Interaction history and current path are not cleared here,
-        // as they might be relevant if the user returns to an app.
+      const isOpening = !prevIsOpen;
+      if (isOpening) {
+        // Animate from center
+        setAnimationOrigin({
+          top: window.innerHeight / 2,
+          left: window.innerWidth / 2,
+        });
+        setAnimationState('opening');
+        if (activeApp) {
+          setPreviousActiveApp(activeApp);
+          setActiveApp(null);
+        }
       } else {
-        // Closing parameters panel - always go back to desktop view
-        setPreviousActiveApp(null); // Clear any stored previous app
-        setActiveApp(null); // Ensure desktop view
-        setLlmContent('');
-        setError(null);
-        setInteractionHistory([]); // Clear history when returning to desktop from parameters
-        setCurrentAppPath([]); // Clear app path
+        // Closing parameters
+        setAnimationState('closing');
+        setTimeout(() => {
+          setAnimationState('idle');
+          if (previousActiveApp) {
+            // This logic is complex, for now, just close to desktop
+            // setActiveApp(previousActiveApp);
+            // setPreviousActiveApp(null);
+          }
+        }, 500);
       }
-      return nowOpeningParameters;
+      return isOpening;
     });
   };
 
@@ -242,7 +284,7 @@ const App: React.FC = () => {
     ? 'ZOS Parameters'
     : activeApp
       ? activeApp.name
-      : 'ZOS Desktop';
+      : 'ZOS'; // Title is now for the app/params window only
 
   const handleMasterClose = () => {
     if (isParametersOpen) {
@@ -256,62 +298,67 @@ const App: React.FC = () => {
     return <SplashScreen />;
   }
 
+  const isWindowVisible = !!activeApp || isParametersOpen;
+
   return (
-    <div className={`w-full h-screen flex items-center justify-center p-0 md:p-4 ${isLoading ? 'cursor-zos-wait' : ''}`}>
-      <Window
-        title={windowTitle}
-        onClose={handleMasterClose}
-        isAppOpen={!!activeApp && !isParametersOpen}
-        appId={activeApp?.id}
-        onToggleParameters={handleToggleParametersPanel}
-        onExitToDesktop={handleCloseAppView}
-        isParametersPanelOpen={isParametersOpen}>
-        <div
-          className="w-full h-full relative"
-          >
-          <div className="circuit-bg"></div>
-          <div className="circuit-lines"></div>
-          <div className="relative w-full h-full">
-            {isParametersOpen ? (
-              <ParametersPanel
-                currentLength={currentMaxHistoryLength}
-                onUpdateHistoryLength={handleUpdateHistoryLength}
-                onClosePanel={handleToggleParametersPanel}
-                isStatefulnessEnabled={isStatefulnessEnabled}
-                onSetStatefulness={handleSetStatefulness}
-              />
-            ) : !activeApp ? (
-              <DesktopView onAppOpen={handleAppOpen} />
-            ) : (
-              <>
-                {isLoading && llmContent.length === 0 && (
-                  <div className="flex flex-col justify-center items-center h-full">
-                    <div className="zos-spinner">
-                      <div className="spinner-ring"></div>
-                      <div className="spinner-ring"></div>
-                      <div className="spinner-ring"></div>
-                    </div>
-                    <p className="llm-text mt-4 animate-pulse">Initializing Interface...</p>
-                  </div>
-                )}
-                {error && (
-                  <div className="p-4 text-red-400 bg-red-900/50 rounded-md">
-                    {error}
-                  </div>
-                )}
-                {(!isLoading || llmContent) && (
-                  <GeneratedContent
-                    htmlContent={llmContent}
-                    onInteract={handleInteraction}
-                    appContext={activeApp.id}
-                    isLoading={isLoading}
-                  />
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </Window>
+    <div className={`w-full h-screen relative overflow-hidden ${isLoading ? 'cursor-zos-wait' : ''}`}>
+      <div className="absolute inset-0">
+        <div className="circuit-bg"></div>
+        <div className="circuit-lines"></div>
+      </div>
+      <div className="relative w-full h-full">
+        <DesktopView onAppOpen={handleAppOpen} />
+      </div>
+
+      {isWindowVisible && (
+         <Window
+         title={windowTitle}
+         onClose={handleMasterClose}
+         isAppOpen={!!activeApp && !isParametersOpen}
+         appId={activeApp?.id}
+         onToggleParameters={handleToggleParametersPanel}
+         onExitToDesktop={handleCloseAppView}
+         isParametersPanelOpen={isParametersOpen}
+         animationState={animationState}
+         animationOrigin={animationOrigin}
+         >
+           {isParametersOpen ? (
+             <ParametersPanel
+               currentLength={currentMaxHistoryLength}
+               onUpdateHistoryLength={handleUpdateHistoryLength}
+               onClosePanel={handleToggleParametersPanel}
+               isStatefulnessEnabled={isStatefulnessEnabled}
+               onSetStatefulness={handleSetStatefulness}
+             />
+           ) : (
+             <>
+               {isLoading && llmContent.length === 0 && (
+                 <div className="flex flex-col justify-center items-center h-full">
+                   <div className="zos-spinner">
+                     <div className="spinner-ring"></div>
+                     <div className="spinner-ring"></div>
+                     <div className="spinner-ring"></div>
+                   </div>
+                   <p className="llm-text mt-4 animate-pulse">Initializing Interface...</p>
+                 </div>
+               )}
+               {error && (
+                 <div className="p-4 text-red-400 bg-red-900/50 rounded-md">
+                   {error}
+                 </div>
+               )}
+               {activeApp && (!isLoading || llmContent) && (
+                 <GeneratedContent
+                   htmlContent={llmContent}
+                   onInteract={handleInteraction}
+                   appContext={activeApp.id}
+                   isLoading={isLoading}
+                 />
+               )}
+             </>
+           )}
+       </Window>
+      )}
     </div>
   );
 };

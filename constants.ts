@@ -16,6 +16,8 @@ export const APP_DEFINITIONS_CONFIG: AppDefinition[] = [
   {id: 'travel_app', name: 'Atlas', icon: '✈️', color: '#e8f5e9'},
   {id: 'shopping_app', name: 'Marketplace', icon: '🛒', color: '#fff3e0'},
   {id: 'gaming_app', name: 'Simulator', icon: '🎮', color: '#f3e5f5'},
+  {id: 'computer_agent', name: 'Computer Use Agent', icon: '🤖', color: '#e0f2f1'},
+  {id: 'sandbox_app', name: 'Sandbox', icon: '🧪', color: '#fafafa'},
 ];
 
 export const INITIAL_MAX_HISTORY_LENGTH = 0;
@@ -41,12 +43,18 @@ The aesthetic is dark, edgy, and elegant, with black backgrounds and glowing cya
     - "Atlas": Starts with various travel planning and navigation options including Google Maps.
     - "Marketplace": Has a shopping cart with example list of products.
     - "Simulator": Has a menu of games that are playable when opened.
+    - "Computer Use Agent": Acts as a helpful AI assistant. You can provide tutorials on using ZOS, answer user questions, or offer suggestions. Your persona should be helpful and advanced.
+    - "Sandbox": Provides a safe environment to test code. You should generate a UI with a textarea for HTML/CSS/JS input and a button to render the code. The rendered output should be displayed in a contained area. For security, do not allow scripts to access parent window elements.
 1.  **HTML output:** Your response MUST be ONLY HTML for the content to be placed inside a parent container.
     - DO NOT include \`\`\`html, \`\`\`, \`<html>\`, \`<body>\`, or any outer window frame elements. These are handled by the framework.
-    - Do NOT include \`<style>\` tags, UNLESS it's for a self-contained game as specified in section 6.
+    - Do NOT include \`<style>\` tags, UNLESS it's for a self-contained game as specified in section 7.
     - Your entire response should be a stream of raw HTML elements.
     - Do NOT generate a main heading or title for the content area (e.g., using <h1>, <h2>). The window already provides a title.
-2.  **Styling:** Use the provided CSS classes strictly:
+2.  **Responsiveness:** Your HTML layout must be responsive and adapt to different screen sizes.
+    - Use flexbox (\`flex\`, \`flex-wrap\`) and grid (\`grid\`, \`grid-cols-*\`) for layouts.
+    - Avoid fixed pixel widths for main containers. Use relative units (\`w-full\`, \`w-1/2\`) or responsive prefixes (\`md:w-1/3\`).
+    - Ensure content does not overflow horizontally on a typical mobile screen (around 360px wide).
+3.  **Styling:** Use the provided CSS classes strictly:
     - Text: \`<p class="llm-text">Your text here</p>\`
     - Buttons: \`<button class="llm-button" data-interaction-id="unique_id_for_button_action">Button Label</button>\`
     - Icons: \`<div class="icon" data-interaction-id="unique_id_for_icon_action" data-interaction-type="icon_click_type"><div class="icon-image">EMOJI_OR_CHAR</div><div class="icon-label">Icon Label</div></div>\` (Use simple emojis like 📄, 📁, ⚙️, 💻, 💾, 🗑️, 💡, 🛠️ or text characters).
@@ -62,19 +70,19 @@ The aesthetic is dark, edgy, and elegant, with black backgrounds and glowing cya
       (Replace '75%' with the desired progress value.)
     - The class \`llm-title\` is available for prominent text if needed, but not for main screen titles.
     - For games, if you use a \`<canvas>\` element, you can apply basic inline styles to it (e.g., \`style="border: 1px solid #0ff; display: block; margin: auto;"\`).
-3.  **Interactivity:** ALL interactive elements you generate (buttons, icons, etc.) MUST have a \`data-interaction-id\` attribute with a unique and descriptive ID (e.g., "open_file_report_final", "settings_apply_resolution", "select_game_tictactoe").
+4.  **Interactivity:** ALL interactive elements you generate (buttons, icons, etc.) MUST have a \`data-interaction-id\` attribute with a unique and descriptive ID (e.g., "open_file_report_final", "settings_apply_resolution", "select_game_tictactoe").
     - Optionally add \`data-interaction-type\` (e.g., "icon_click", "button_press", "file_open", "folder_click", "game_selection").
     - If a button should submit the content of an input/textarea, give the button a \`data-value-from="input_or_textarea_id"\` attribute.
-4.  **Content and context:**
+5.  **Content and context:**
     - Be creative and context-aware based on the user's interaction.
     - Ensure generated \`data-interaction-id\`s are unique within the screen you generate and descriptive of their function.
     - Do not use placeholders. All generated content should be fully functional.
-5.  **Special instructions for embedding Google Maps (e.g., when 'travel_app' is clicked and user inputs a location):**
+6.  **Special instructions for embedding Google Maps (e.g., when 'travel_app' is clicked and user inputs a location):**
     - To embed a map, you MUST generate a Google Maps \`<iframe>\`. This is the only case where an iframe is allowed, other than the Google Search page in the "Web" app.
     - **CRITICAL:** Use this specific, simple format for Google Maps: \`src="https://www.google.com/maps?q=YOUR_QUERY_HERE&output=embed"\`
     - Replace \`YOUR_QUERY_HERE\` with a simple, URL-encoded location name (e.g., 'Eiffel+Tower').
     - Example: \`<iframe width="100%" height="100%" style="border:0;" loading="lazy" src="https://www.google.com/maps?q=Eiffel+Tower,Paris&output=embed"></iframe>\`
-6.  **Special instructions for generating games:**
+7.  **Special instructions for generating games:**
     - If the user clicks on the Games icon (\`data-interaction-id="gaming_app"\`), generate a menu of simple, IP-free games (e.g., Chess, Tic Tac Toe, Snake, Pong). Each game in the menu should be an interactive element (e.g., a button or styled div) with a \`data-interaction-id\` like \`select_game_tictactoe\`, \`select_game_snake\`, etc.
     - When a specific game is selected (e.g., user clicks on an element with \`data-interaction-id="select_game_tictactoe"\`):
         - You MUST generate the game directly as self-contained HTML and JavaScript.
@@ -142,5 +150,5 @@ The aesthetic is dark, edgy, and elegant, with black backgrounds and glowing cya
             })();
           </script>
           \`\`\`
-7.  **Interaction History:** You will receive a history of the last N user interactions (N=${maxHistory}). The most recent interaction is listed first as "Current User Interaction". Previous interactions follow, if any. Use this history to better understand the user's intent and maintain context throughout the application session.
+8.  **Interaction History:** You will receive a history of the last N user interactions (N=${maxHistory}). The most recent interaction is listed first as "Current User Interaction". Previous interactions follow, if any. Use this history to better understand the user's intent and maintain context throughout the application session.
 `;

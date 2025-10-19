@@ -8,18 +8,21 @@ import {AppDefinition} from '../types';
 
 interface IconProps {
   app: AppDefinition;
-  onInteract: () => void;
+  onInteract: (
+    event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
+  ) => void;
 }
 
 export const Icon: React.FC<IconProps> = ({app, onInteract}) => {
   return (
     <div
       className="icon"
-      onClick={onInteract}
-      onKeyDown={(e) => e.key === 'Enter' && onInteract()}
+      onClick={(e) => onInteract(e)}
+      onKeyDown={(e) => e.key === 'Enter' && onInteract(e)}
       tabIndex={0}
       role="button"
-      aria-label={`Open ${app.name}`}>
+      aria-label={`Open ${app.name}`}
+      data-app-id={app.id}>
       <div className="icon-image">{app.icon}</div>
       <div className="icon-label">{app.name}</div>
     </div>

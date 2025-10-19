@@ -74,7 +74,7 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
   };
 
   return (
-    <div className="p-6 h-full flex flex-col items-start pt-8 text-gray-300">
+    <div className="p-4 md:p-6 h-full flex flex-col items-start pt-4 md:pt-8 text-gray-300">
       {/* Interaction History Row */}
       <div className="w-full max-w-md mb-6">
         <div className="llm-row items-center">

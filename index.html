@@ -23,24 +23,24 @@
 
         /* Define classes the LLM is instructed to use, applying Tailwind's styles */
         .llm-button {
-          @apply bg-gray-800 text-cyan-300 border border-cyan-500 rounded-md py-2 px-4 m-2 cursor-pointer text-base font-medium text-center transition-all hover:bg-cyan-500 hover:text-gray-900 hover:shadow-[0_0_15px_rgba(0,255,255,0.8)] active:transform active:translate-y-px;
+          @apply bg-gray-800 text-cyan-300 border border-cyan-500 rounded-md py-2 px-4 m-1 md:m-2 cursor-pointer text-sm md:text-base font-medium text-center transition-all hover:bg-cyan-500 hover:text-gray-900 hover:shadow-[0_0_15px_rgba(0,255,255,0.8)] active:transform active:translate-y-px;
         }
         .llm-text {
-          @apply m-2 text-base text-gray-300 leading-relaxed;
+          @apply m-1 md:m-2 text-sm md:text-base text-gray-300 leading-relaxed;
         }
         .llm-title {
-          @apply font-bold text-xl text-cyan-400 mb-3 mt-1 mx-2;
+          @apply font-bold text-lg md:text-xl text-cyan-400 mb-2 md:mb-3 mt-1 mx-1 md:mx-2;
         }
         .llm-input,
         .llm-textarea {
-          @apply m-2 p-2 w-full border border-gray-600 rounded-md bg-gray-900 font-sans text-gray-200 text-sm transition-all focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50;
+          @apply m-1 md:m-2 p-2 w-full border border-gray-600 rounded-md bg-gray-900 font-sans text-gray-200 text-sm transition-all focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50;
           cursor: var(--cursor-text);
         }
         .llm-textarea {
           @apply min-h-[120px];
         }
         .llm-container {
-          @apply w-full flex flex-col items-start mb-4 gap-2 p-2;
+          @apply w-full flex flex-col items-start mb-2 md:mb-4 gap-1 md:gap-2 p-1 md:p-2;
         }
         .llm-row {
           @apply w-full flex items-center mb-2 gap-2;
@@ -49,16 +49,20 @@
           @apply mr-1 text-sm text-gray-400;
         }
         .icon {
-          @apply w-28 h-32 flex flex-col items-center justify-start text-center m-2 p-2 cursor-pointer select-none rounded-lg transition-all;
+          @apply w-20 h-24 md:w-28 md:h-32 flex flex-col items-center justify-start text-center m-1 p-1 md:p-2 cursor-pointer select-none rounded-lg transition-all duration-300;
         }
         .icon-image {
-          @apply text-6xl mb-2 drop-shadow-sm transition-all duration-300;
+          @apply text-5xl md:text-6xl mb-1 md:mb-2 drop-shadow-sm transition-all duration-300;
         }
         .icon-label {
-          @apply text-sm text-gray-300 font-semibold break-words max-w-full leading-tight transition-colors duration-300;
+          @apply text-xs md:text-sm text-gray-300 font-semibold break-words max-w-full leading-tight transition-colors duration-300;
+        }
+        .icon:hover, .icon:focus, .icon:focus-within {
+          @apply bg-cyan-900/40 scale-105;
+          box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
         }
         .icon:hover .icon-image, .icon:focus .icon-image, .icon:focus-within .icon-image {
-          @apply scale-110 text-cyan-400;
+          @apply text-cyan-400;
           text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
         }
         .icon:hover .icon-label, .icon:focus .icon-label, .icon:focus-within .icon-label {
