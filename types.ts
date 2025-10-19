@@ -19,3 +19,8 @@ export interface InteractionData {
   elementText: string;
   appContext: string | null;
 }
+
+export interface TranscriptionEntry {
+  speaker: 'user' | 'agent' | 'system';
+  text: string;
+}
