@@ -1,0 +1,6 @@
+{
+  "name": "ZOS",
+  "description": "A futuristic OS simulation with a UI that is generated dynamically from user interactions.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

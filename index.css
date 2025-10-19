@@ -1,0 +1,12 @@
+/* Responsive styles for the window to be full-screen on mobile */
+@media (min-width: 768px) { /* Corresponds to Tailwind's 'md' breakpoint */
+  .window-shape {
+    clip-path: polygon(20px 0, calc(100% - 20px) 0, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
+  }
+  .inner-bevel-shape {
+    clip-path: polygon(20px 0, calc(100% - 20px) 0, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0 calc(100% - 20px), 0 20px);
+  }
+  .main-frame-shape {
+    clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+  }
+}
