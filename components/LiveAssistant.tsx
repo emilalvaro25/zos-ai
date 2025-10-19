@@ -105,6 +105,8 @@ interface LiveAssistantProps {
     isAppOpen: boolean;
 }
   
+type AssistantStatus = 'idle' | 'listening' | 'processing';
+
 export const LiveAssistant: React.FC<LiveAssistantProps> = ({
     onClose,
     transcriptionHistory,
@@ -114,7 +116,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
     getAppList,
     isAppOpen
 }) => {
-    const [isListening, setIsListening] = useState(false);
+    const [assistantStatus, setAssistantStatus] = useState<AssistantStatus>('idle');
     const [error, setError] = useState<string | null>(null);
 
     const sessionPromiseRef = useRef<Promise<any> | null>(null);
@@ -162,7 +164,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
     };
     
     const handleStartListening = useCallback(async () => {
-        setIsListening(true);
+        setAssistantStatus('listening');
         setError(null);
         currentInputTranscription.current = '';
         currentOutputTranscription.current = '';
@@ -170,9 +172,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
             
-            // FIX: Cast window to `any` to allow for `webkitAudioContext` for older browser compatibility.
             inputAudioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-            // FIX: Cast window to `any` to allow for `webkitAudioContext` for older browser compatibility.
             outputAudioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
             
             mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -208,6 +208,16 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
                         scriptProcessorRef.current.connect(inputAudioContextRef.current.destination);
                     },
                     onmessage: async (message: LiveServerMessage) => {
+                         // State management based on message content
+                         if (message.serverContent?.turnComplete || message.serverContent?.interrupted) {
+                            if (message.serverContent?.interrupted) {
+                                stopAudioPlayback();
+                            }
+                            setAssistantStatus('listening');
+                        } else if (message.serverContent?.outputTranscription || message.serverContent?.modelTurn?.parts[0]?.inlineData.data) {
+                            setAssistantStatus('processing');
+                        }
+                        
                         // Handle transcriptions
                         if (message.serverContent?.inputTranscription) {
                             currentInputTranscription.current += message.serverContent.inputTranscription.text;
@@ -268,15 +278,11 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
                             nextStartTimeRef.current += audioBuffer.duration;
                             outputSourcesRef.current.add(source);
                         }
-                        
-                        if (message.serverContent?.interrupted) {
-                            stopAudioPlayback();
-                        }
                     },
                     onerror: (e: ErrorEvent) => {
                         console.error('Live session error:', e);
                         setError('A connection error occurred.');
-                        setIsListening(false);
+                        setAssistantStatus('idle');
                     },
                     onclose: () => {
                         // Session closed by server or due to an error.
@@ -286,12 +292,12 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
         } catch (err: any) {
             console.error('Failed to start listening:', err);
             setError(err.message || 'Failed to access microphone.');
-            setIsListening(false);
+            setAssistantStatus('idle');
         }
     }, [openApp, closeApp, getAppList, setTranscriptionHistory]);
 
     const handleStopListening = useCallback(async () => {
-        setIsListening(false);
+        setAssistantStatus('idle');
         stopMicrophone();
         stopAudioPlayback();
         if (sessionPromiseRef.current) {
@@ -307,7 +313,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
     }, []);
 
     const toggleListening = () => {
-        if (isListening) {
+        if (assistantStatus !== 'idle') {
             handleStopListening();
         } else {
             handleStartListening();
@@ -337,7 +343,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
                 </div>
                 {error && <div className="p-2 text-center text-red-400">{error}</div>}
                 <div className="assistant-controls">
-                    <div onClick={toggleListening} className={`mic-button ${isListening ? 'listening' : 'idle'}`}>
+                    <div onClick={toggleListening} className={`mic-button ${assistantStatus}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg>
                     </div>
                 </div>

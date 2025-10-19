@@ -143,7 +143,10 @@
             @apply p-4 border-t border-gray-700 flex justify-center items-center;
         }
         .mic-button {
-            @apply w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer text-cyan-300;
+            @apply w-20 h-20 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer text-cyan-300 relative overflow-hidden;
+        }
+        .mic-button > svg {
+            @apply relative z-10;
         }
         .mic-button.listening {
             @apply bg-red-500/50 border-2 border-red-500 text-red-300;
@@ -151,6 +154,26 @@
         }
         .mic-button.idle {
             @apply bg-gray-700 border-2 border-gray-500 hover:bg-gray-600;
+            animation: pulse-idle 3s infinite ease-in-out;
+        }
+        .mic-button.processing {
+            @apply bg-gray-800 border-2 border-transparent text-cyan-300;
+        }
+        .mic-button.processing::before {
+            content: '';
+            @apply absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(
+                transparent,
+                rgba(0, 255, 255, 0.8),
+                transparent 30%
+            );
+            animation: rotate 4s linear infinite;
+        }
+        /* Mobile-specific window header icon button */
+        .window-header-icon {
+          @apply w-8 h-8 flex items-center justify-center text-gray-400 hover:text-cyan-300 transition-colors;
         }
       }
 
@@ -164,10 +187,7 @@
 
       .zos-logo {
         font-family: 'Orbitron', sans-serif; /* A futuristic font */
-        font-weight: 700;
-        font-style: italic;
-        font-size: 10rem;
-        color: #00ffff;
+        @apply font-bold italic text-7xl sm:text-8xl lg:text-[10rem] text-cyan-400;
         text-shadow:
           0 0 5px #00ffff,
           0 0 15px #00ffff,
@@ -219,11 +239,6 @@
         mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
         animation: scroll-lines 20s linear infinite;
       }
-
-      @keyframes scroll-lines {
-        from { background-position: 0 0; }
-        to { background-position: 0 -200px; }
-      }
       
       /* Keyframes for new spinner */
       @keyframes spin {
@@ -250,6 +265,22 @@
         0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
         70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
         100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      }
+      /* Keyframe for processing mic spin */
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      /* Keyframe for idle mic pulse */
+      @keyframes pulse-idle {
+        0%, 100% {
+          box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.2);
+          border-color: #6b7280; /* gray-500 */
+        }
+        50% {
+          box-shadow: 0 0 0 5px rgba(0, 255, 255, 0);
+          border-color: #00ffff;
+        }
       }
     </style>
     <!-- Adding a futuristic font from Google Fonts -->

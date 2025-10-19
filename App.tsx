@@ -333,7 +333,7 @@ const App: React.FC = () => {
         <div className="circuit-bg"></div>
         <div className="circuit-lines"></div>
       </div>
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full overflow-y-auto pt-2 md:pt-0">
         <DesktopView onAppOpen={handleAppOpen} />
         <button
           className="assistant-fab"
