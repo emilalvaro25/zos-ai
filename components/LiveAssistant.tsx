@@ -172,8 +172,15 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
             
-            inputAudioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-            outputAudioContextRef.current = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+            const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
+            if (!AudioContext) {
+              setError("Your browser doesn't support the Web Audio API.");
+              setAssistantStatus('idle');
+              return;
+            }
+
+            inputAudioContextRef.current = new AudioContext({ sampleRate: 16000 });
+            outputAudioContextRef.current = new AudioContext({ sampleRate: 24000 });
             
             mediaStreamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
 
