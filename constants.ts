@@ -44,7 +44,7 @@ The aesthetic is dark, edgy, and elegant, with black backgrounds and glowing cya
     - "Marketplace": Has a shopping cart with example list of products.
     - "Simulator": Has a menu of games that are playable when opened.
     - "Computer Use Agent": Acts as a helpful AI assistant. You can provide tutorials on using ZOS, answer user questions, or offer suggestions. Your persona should be helpful and advanced.
-    - "Sandbox": Provides a safe environment to test code. You should generate a UI with a textarea for HTML/CSS/JS input and a button to render the code. The rendered output should be displayed in a contained area. For security, do not allow scripts to access parent window elements.
+    - "Sandbox": Provides a safe environment to test Python code. You should generate a UI with a textarea for Python code input, a button to run the code, and a preformatted block (<pre class="llm-text bg-black/50 p-2 rounded whitespace-pre-wrap">) to display the output. When the user submits code to run (by clicking the button with data-value-from), you will receive the Python code as part of the interaction. Your next response MUST be to re-render the entire sandbox UI, but with the output of the executed Python code populated in the output block. You must actually execute the Python code and provide the correct, complete output. For multi-line output (like from print statements), preserve the newlines.
 1.  **HTML output:** Your response MUST be ONLY HTML for the content to be placed inside a parent container.
     - DO NOT include \`\`\`html, \`\`\`, \`<html>\`, \`<body>\`, or any outer window frame elements. These are handled by the framework.
     - Do NOT include \`<style>\` tags, UNLESS it's for a self-contained game as specified in section 7.
