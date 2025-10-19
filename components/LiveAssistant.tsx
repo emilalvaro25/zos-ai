@@ -215,13 +215,18 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
                         scriptProcessorRef.current.connect(inputAudioContextRef.current.destination);
                     },
                     onmessage: async (message: LiveServerMessage) => {
-                         // State management based on message content
-                         if (message.serverContent?.turnComplete || message.serverContent?.interrupted) {
+                        // State management: Set 'processing' if the model is returning audio, text, or a tool call.
+                        // Set 'listening' only when the turn is fully complete.
+                        if (message.serverContent?.turnComplete || message.serverContent?.interrupted) {
                             if (message.serverContent?.interrupted) {
                                 stopAudioPlayback();
                             }
                             setAssistantStatus('listening');
-                        } else if (message.serverContent?.outputTranscription || message.serverContent?.modelTurn?.parts[0]?.inlineData.data) {
+                        } else if (
+                            message.serverContent?.outputTranscription ||
+                            message.serverContent?.modelTurn?.parts[0]?.inlineData.data ||
+                            message.toolCall
+                        ) {
                             setAssistantStatus('processing');
                         }
                         
@@ -239,6 +244,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
                             
                             setTranscriptionHistory(prev => {
                                 const newHistory = [...prev];
+                                // Avoid adding empty bubbles
                                 if (fullInput) newHistory.push({ speaker: 'user', text: fullInput });
                                 if (fullOutput) newHistory.push({ speaker: 'agent', text: fullOutput });
                                 return newHistory;
@@ -251,22 +257,30 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({
                         // Handle function calls
                         if (message.toolCall?.functionCalls) {
                             for (const fc of message.toolCall.functionCalls) {
-                                let result = '';
-                                if (fc.name === 'openApp') {
-                                    result = openApp(fc.args.appName);
-                                } else if (fc.name === 'closeApp') {
-                                    result = closeApp();
-                                } else if (fc.name === 'getAppList') {
-                                    result = getAppList();
+                                let result: string;
+                                // Use a switch statement for cleaner logic and robustness
+                                switch (fc.name) {
+                                    case 'openApp':
+                                        result = openApp(fc.args.appName as string);
+                                        break;
+                                    case 'closeApp':
+                                        result = closeApp();
+                                        break;
+                                    case 'getAppList':
+                                        result = getAppList();
+                                        break;
+                                    default:
+                                        console.warn(`Unknown function call received: ${fc.name}`);
+                                        result = `Function '${fc.name}' is not implemented.`;
+                                        break;
                                 }
-
-                                if (sessionPromiseRef.current) {
-                                    sessionPromiseRef.current.then(session => {
-                                        session.sendToolResponse({
-                                            functionResponses: { id: fc.id, name: fc.name, response: { result } }
-                                        });
+                        
+                                // Promptly send the response for each function call back to the model.
+                                sessionPromiseRef.current?.then(session => {
+                                    session.sendToolResponse({
+                                        functionResponses: { id: fc.id, name: fc.name, response: { result } }
                                     });
-                                }
+                                });
                             }
                         }
 
